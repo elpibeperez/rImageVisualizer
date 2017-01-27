@@ -7,5 +7,3 @@ rImageVisualizerVisualize = function(){
 
 }
 
-
-rImageVisualizerVisualize()
