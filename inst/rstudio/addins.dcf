@@ -1,5 +1,5 @@
 Name: Visualize matrix
 Description: Windows to view matrixes
-Binding: rImageVisualizer
+Binding: rImageVisualizerVisualize
 Interactive: false
 
