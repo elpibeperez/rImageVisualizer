@@ -5,8 +5,9 @@ library(rPython)
 
 SCRIPT_PATH =  "src/python/"
 IMAGE_GENERATOR_SCRIPT_FILE_NAME = "image-generator-from-matrix.py"
+SAVE_MATRIX_SCRIPT_FILE_NAME = "save-matrix-as-image.py"
 PACKAGE_NAME = "rImageVisualizer"
-
+TEMP_FILENAME = "/tmp/test.gif"
 ###End constant declarations
 
 
@@ -17,14 +18,12 @@ rImageVisualizerVisualize = function(){
     valorSeleccionado = array[id]
     print(dim(get(valorSeleccionado)))
     pythonScript = toString(system.file(paste(SCRIPT_PATH,IMAGE_GENERATOR_SCRIPT_FILE_NAME,sep=""), package = PACKAGE_NAME ))
-    print(pythonScript)
     python.load(pythonScript)
     python.call("render_image", get(valorSeleccionado))
     if(!is.null(win1$env$matrix)){
       tkdestroy(win1$env$frm)
     }
-    load_image(imgfile = "/tmp/test.gif")
-
+    load_image(imgfile = TEMP_FILENAME)
     win1$env$matrix = get(valorSeleccionado);
     win1$env$matrixname = array[id]
   }
@@ -48,13 +47,20 @@ rImageVisualizerVisualize = function(){
                    icon = "info", type = "ok")
     }else{
       filename <- tclvalue(tkgetSaveFile(initialfile = win1$env$matrixname,
-                  filetypes = "{ {JPEG Files} {.jpg .jpeg} } { {GIF Files} {.gif} } { {PNG Files} {.png} }  { {All Files} * }"))
-      tkmessageBox(title = "File name",
-                   message = paste("Your file will be saved as", filename),
-                   icon = "info", type = "ok")
-
+                  filetypes = "{ {JPEG Files} {.jpg .jpeg} } { {GIF Files} {.gif} } { {PNG Files} {.png} }"))
+      if(filename != ""){
+        save_matrix_as_image_file(win1$env$matrix, filename)
+      }
     }
   }
+  save_matrix_as_image_file <- function(matrix, filename){
+    pythonScript = toString(system.file(paste(SCRIPT_PATH,SAVE_MATRIX_SCRIPT_FILE_NAME,sep=""), package = PACKAGE_NAME ))
+    python.load(pythonScript)
+    python.call("render_image", matrix, filename)
+
+  }
+
+
   ##End methods declaration
 
   print("Visualizing!!!");
