@@ -1,6 +1,7 @@
 import wx
 import Image
 import numpy
+import json
 
 TEMP_IMAGE_DEFAULT_VALUE = "/tmp/test.gif"
 
@@ -42,4 +43,5 @@ def render_image(mat, image = TEMP_IMAGE_DEFAULT_VALUE):
         im.save(image, "gif")
     else:
         pass 
+
 
