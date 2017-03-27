@@ -1,18 +1,28 @@
-library(tcltk2)
-library(rPython)
-
-###Constants declarations
-
-SCRIPT_PATH =  "src/python/"
-IMAGE_GENERATOR_SCRIPT_FILE_NAME = "image-generator-from-matrix.py"
-COLOUR_IMAGE_GENERATOR_SCRIPT_FILE_NAME = "colour-image-generator-from-matrix.py"
-SAVE_MATRIX_SCRIPT_FILE_NAME = "save-matrix-as-image.py"
-PACKAGE_NAME = "rImageVisualizer"
-TEMP_FILENAME = "/tmp/test.gif"
-###End constant declarations
-
 
 rImageVisualizerVisualize = function(){
+
+  library(tcltk2)
+  library(rPython)
+  library(ripa)
+  library(spatialfil)
+  library(EBImage)
+  ###Constants declarations
+
+  SCRIPT_PATH =  "src/python/"
+  IMAGE_GENERATOR_SCRIPT_FILE_NAME = "image-generator-from-matrix.py"
+  COLOUR_IMAGE_GENERATOR_SCRIPT_FILE_NAME = "colour-image-generator-from-matrix.py"
+  SAVE_MATRIX_SCRIPT_FILE_NAME = "save-matrix-as-image.py"
+  PACKAGE_NAME = "rImageVisualizer"
+  TEMP_FILENAME = "/tmp/test.gif"
+
+
+  ###End constant declarations
+
+  create_kernel = function(mat, k){
+    output <- list('matrix' = mat, 'kernel' = k)
+    class(output) <- 'convKern'
+    return(output)
+  }
 
   rescale_array =  function (array, new_min = 0, new_max = 255){
       amin = min(array)
@@ -113,9 +123,27 @@ rImageVisualizerVisualize = function(){
     return(three_bands_list)
   }
 
+  apply_filter = function(kernel){
+    if(!is.null(win1$env$matrix)){
+    #   #aplicar el filtro
+       win1$env$matrix  = filter2(win1$env$matrix, kernel)
+       print(win1$env$matrix)
+    #   #redibujar imagen temporal
+       pythonScript = toString(system.file(paste(SCRIPT_PATH,IMAGE_GENERATOR_SCRIPT_FILE_NAME,sep=""), package = PACKAGE_NAME ))
+       python.load(pythonScript)
+       python.call("render_image", win1$env$matrix)
+    #   #recargar en el dibujo
+       tkdestroy(win1$env$frm)
+       load_image(imgfile = TEMP_FILENAME)
+    #   print(rescale_array(win1$env$matrix))
+    #
+    }
+    #print(kernel)
+    #print(filter_list[kernel])
+  }
+
   ##End methods declaration
 
-  print("Visualizing!!!");
   black_and_white = get_matrixes_array()
   colour = get_three_bands_matrixes()
 
@@ -155,6 +183,68 @@ rImageVisualizerVisualize = function(){
   tkadd(win1$env$menuFile, "command", label = "Quit",
         command = function() tkdestroy(win1))
   tkadd(win1$env$menu, "cascade", label = "File", menu = win1$env$menuFile)
+
+  ##Add filters
+  win1$env$menuFilter <- tk2menu(win1$env$menu, tearoff = FALSE)
+  tkadd(win1$env$menuFilter, "command", label = "blur",
+        command = function() apply_filter(matrix(c(
+          1,  1,  1,  1,  1,
+          1,  0,  0,  0,  1,
+          1,  0,  0,  0,  1,
+          1,  0,  0,  0,  1,
+          1,  1,  1,  1,  1
+        ),nrow = 5, ncol = 5 )))
+  tkadd(win1$env$menuFilter, "command", label = "contour",
+        command = function() apply_filter(matrix(c(
+          -1, -1, -1,
+          -1,  8, -1,
+          -1, -1, -1
+        ),nrow = 3, ncol = 3 )))
+  tkadd(win1$env$menuFilter, "command", label = "detail",
+        command = function() apply_filter(matrix(c(
+          0, -1,  0,
+          -1, 10, -1,
+          0, -1,  0
+        ),nrow = 3, ncol = 3)))
+  tkadd(win1$env$menuFilter, "command", label = "edge enhance 1",
+        command = function() apply_filter(matrix(c(
+          -1, -1, -1,
+          -1, 10, -1,
+          -1, -1, -1
+        ),nrow = 3, ncol = 3)))
+  tkadd(win1$env$menuFilter, "command", label = "edge enhance 2",
+        command = function() apply_filter(matrix(c(
+          -1, -1, -1,
+          -1,  9, -1,
+          -1, -1, -1
+        ),nrow = 3, ncol = 3)))
+  tkadd(win1$env$menuFilter, "command", label = "emboss",
+        command = function() apply_filter(matrix(c(
+          -1,  0,  0,
+          0,  1,  0,
+          0,  0,  0
+        ),nrow = 3, ncol = 3)))
+  tkadd(win1$env$menuFilter, "command", label = "find edges",
+        command = function() apply_filter(matrix(c(
+          -1, -1, -1,
+          -1,  8, -1,
+          -1, -1, -1 ),nrow = 3, ncol = 3)))
+  tkadd(win1$env$menuFilter, "command", label = "smooth",
+        command = function() apply_filter(matrix(c(
+          1,  1,  1,
+          1,  5,  1,
+          1,  1,  1
+        ), nrow = 3, ncol = 3)))
+  tkadd(win1$env$menuFilter, "command", label = "sharpen",
+        command = function() apply_filter(matrix(c(
+          -2, -2, -2,
+          -2, 32, -2,
+          -2, -2, -2
+        ), nrow = 3, ncol = 3)))
+
+  tkadd(win1$env$menu, "cascade", label = "Filter", menu = win1$env$menuFilter)
+
+
 
   tktitle(win1) <- "Image Visualizer"
 

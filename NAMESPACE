@@ -1,5 +1,6 @@
 import(tcltk2)
 import(rPython)
 import(rstudioapi)
+import(ripa)
 
 exportPattern("^[[:alpha:]]+")
